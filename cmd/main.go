@@ -18,7 +18,7 @@ func main() {
 	// Handles get all produce and add one or more produces
 	r.HandleFunc("/produce", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodGet {
-			jsonProduceList, err := json.Marshal(database.FetchProduce())
+			jsonProduceList, err := json.Marshal(database.FetchProduceAll())
 			if err != nil {
 				fmt.Printf("Failed to marshal produce list, error: %s", err.Error())
 				w.WriteHeader(http.StatusInternalServerError)
@@ -60,6 +60,20 @@ func main() {
 				w.WriteHeader(http.StatusBadRequest)
 			}
 			w.WriteHeader(http.StatusOK)
+		}
+		if r.Method == http.MethodGet {
+			if produce, err := database.FetchProduce(produceCode); err != nil {
+				w.WriteHeader(http.StatusNotFound)
+			}else{
+				jsonProduce, err := json.Marshal(produce)
+				if err != nil {
+					fmt.Printf("Failed to marshal produce with produce code %s, error: %s", produceCode, err.Error())
+					w.WriteHeader(http.StatusInternalServerError)
+					return
+				}
+				fmt.Fprintf(w, string(jsonProduce))
+				w.WriteHeader(http.StatusOK)
+			}
 		}
 	})
 
